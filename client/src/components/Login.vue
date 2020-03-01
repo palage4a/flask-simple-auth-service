@@ -1,18 +1,14 @@
 <template>
   <div>
     <alert v-if="showMessage" :message="message"></alert>
-    <b-form @submit="onSubmit" @reset="onReset" class="w-100">
-      <b-form-group
-        id="form-name-group"
-        label="If you dont have token, please register:"
-        label-for="form-name-input"
-      >
+    <b-form @submit="onSubmitLogin" @reset="onReset" class="w-100">
+      <b-form-group id="form-name-group" label="Login in service:" label-for="form-name-input">
         <b-form-input
           id="form-name-input"
           type="text"
-          v-model="registerForm.name"
+          v-model="loginForm.token"
           required
-          placeholder="Enter name"
+          placeholder="Enter your token"
         ></b-form-input>
       </b-form-group>
       <b-button type="submit" variant="primary">Submit</b-button>
@@ -27,8 +23,8 @@ import Alert from "./Alert";
 export default {
   data() {
     return {
-      registerForm: {
-        name: ""
+      loginForm: {
+        token: ""
       },
       message: "",
       showMessage: false
@@ -39,16 +35,19 @@ export default {
   },
   methods: {
     initForms() {
-      this.registerForm.name = "";
       this.loginForm.token = "";
     },
-    // REGISTER
-    register(payload) {
-      const path = "http://localhost:5000/register";
+    //LOGIN
+    login(payload) {
+      const path = "http://localhost:5000/auth";
       axios
         .post(path, payload)
         .then(res => {
-          this.message = `User ${res.data.name} register!\nYour token is ${res.data.token}`;
+          if (res.data.access == "true") {
+            this.message = ` User ${res.data.name} logged-in! Congrats! `;
+          } else {
+            this.message = `Your token is invalid!`;
+          }
           this.showMessage = true;
         })
         .catch(error => {
@@ -56,18 +55,18 @@ export default {
           this.initForms();
         });
     },
-    onSubmit(evt) {
+    onSubmitLogin(evt) {
       evt.preventDefault();
       const payload = {
-        name: this.registerForm.name
+        token: this.loginForm.token
       };
-      this.register(payload);
+      this.login(payload);
       this.initForms();
     },
     onReset(evt) {
       evt.preventDefault();
       this.initForms();
-    },
+    }
   },
   created() {
     this.initForms();
